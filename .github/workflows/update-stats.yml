@@ -2,7 +2,7 @@ name: Update stats
 
 on:
   schedule:
-  - cron: "38 6 * * *"
+  - cron: "0 8 * * *"
     
 jobs:
   update-readme:
