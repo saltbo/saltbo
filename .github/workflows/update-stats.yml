@@ -2,8 +2,8 @@ name: Update stats
 
 on:
   schedule:
-    - cron: "06 04 * * *"
-
+  - cron: "9 4 * * *"
+    
 jobs:
   update-readme:
     name: Update Readme with Metrics
