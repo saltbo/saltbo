@@ -1,9 +1,13 @@
-## Ambor
+### Hi there 👋
+This is the place where I opensource stuff and break things :rofl:
 
-Hello 👋, I'm Ambor -- A fake-full-stack engineer.
+- 🔭 I’m currently working on something cool :wink:
+- 🌱 I’m currently learning Rust/Kubernetes/Serverless
+- 💬 Ask me about anything related to Go/Rust/CloudNative
+- 📫 How to reach me: [@saltbo](https://twitter.com/saltbobx)
+- ⚡ Fun fact: I :heart: :dog:s
 
-currently based in Beijing, at igetget.com
-
+📊 **This week I spent my time on**
 <!--START_SECTION:waka-->
 ```text
 Go          1 hr 13 mins        █████████████████░░░░░░░░   70.17 
