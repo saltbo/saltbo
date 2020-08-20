@@ -1,7 +1,7 @@
 ### Hi there 👋
 This is the place where I opensource :rofl:
 
-- 🔭 I’m currently working on (igetget.com)[igetget.com] :wink:
+- 🔭 I’m currently working on [igetget.com](https://www.igetget.com) :wink:
 - 🌱 I’m currently learning Rust/Kubernetes/Serverless
 - 💬 Ask me about anything related to Go/Rust/CloudNative
 - 📫 How to reach me: [@saltbo](https://twitter.com/saltbobx)
