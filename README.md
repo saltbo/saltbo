@@ -1,11 +1,11 @@
 ### Hi there 👋
-This is the place where I opensource stuff and break things :rofl:
+This is the place where I opensource :rofl:
 
-- 🔭 I’m currently working on something cool :wink:
+- 🔭 I’m currently working on igetget.com :wink:
 - 🌱 I’m currently learning Rust/Kubernetes/Serverless
 - 💬 Ask me about anything related to Go/Rust/CloudNative
 - 📫 How to reach me: [@saltbo](https://twitter.com/saltbobx)
-- ⚡ Fun fact: I :heart: :dog:s
+- ⚡ Fun fact: I :heart: :cat:s
 
 📊 **This week I spent my time on**
 <!--START_SECTION:waka-->
