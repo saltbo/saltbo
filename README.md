@@ -1,4 +1,7 @@
 ### Hi there 👋
+
+![](https://komarev.com/ghpvc/?username=saltbo&color=green&style=flat-square&label=visits)
+
 This is the place where I opensource :rofl:
 
 - 🔭 I’m currently working on [luojilab](https://www.igetget.com) :wink:
