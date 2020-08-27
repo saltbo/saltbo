@@ -1,14 +1,21 @@
-### Hi there 👋
+<!-- Your title -->
+## Hi, I'm Ambor, A Full Stack Developer 🚀 from China.
 
-![](https://komarev.com/ghpvc/?username=saltbo&color=brightgreen&label=visits)
+![visits](https://komarev.com/ghpvc/?username=saltbo&color=brightgreen&label=visits)
 
-This is the place where I opensource :rofl:
+&nbsp;
+
+**Talking about Personal Stuffs:**
+
+<!-- Any image aligned to the right. Beware the width -->
+<img width="45%" align="right" alt="Github" src="https://raw.githubusercontent.com/onimur/.github/master/.resources/git-header.svg" />
 
 - 🔭 I’m currently working on [luojilab](https://www.igetget.com) :wink:
 - 🌱 I’m currently learning Rust/Kubernetes/Serverless
 - 💬 Ask me about anything related to Go/Rust/CloudNative
 - 📫 How to reach me: [@saltbo](https://twitter.com/saltbobx)
 - ⚡ Fun fact: I :heart: :cat:s
+
 
 📊 **This week I spent my time on**
 <!--START_SECTION:waka-->
