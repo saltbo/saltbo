@@ -9,7 +9,7 @@
 
 **Talking about Personal Stuffs:**
 <!-- Any image aligned to the right. Beware the width -->
-<img width="45%" align="right" alt="Github" src="https://raw.githubusercontent.com/onimur/.github/master/.resources/git-header.svg" />
+<img width="45%" align="right" alt="Github" src="https://raw.githubusercontent.com/saltbo/saltbo/master/images/git-header.svg" />
 
 - 🔭 I’m currently working on [luojilab](https://github.com/luojilab) :wink:
 - 🌱 I’m currently learning Rust/Kubernetes/Serverless
