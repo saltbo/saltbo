@@ -3,7 +3,7 @@
 
 [![Twitter](https://img.shields.io/badge/-saltbo-1ca0f1?style=flat&logo=twitter&logoColor=white)](https://twitter.com/rdsaltbo)
 [![Linkedin](https://img.shields.io/badge/-saltbo-blue?style=flat&logo=Linkedin&logoColor=white)](https://www.linkedin.com/in/saltbo/)
-[![visits](https://visitor-badge.vercel.app/page/saltbo?color=light-green)](https://github.com/saltbo/)
+[![visits](https://visitor.vercel.app/page/saltbo?color=light-green)](https://github.com/saltbo/)
 
 &nbsp;
 
