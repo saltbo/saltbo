@@ -1,4 +1,3 @@
-<!-- Your title -->
 ## Hi, I'm Ambor, A Full Stack Developer 🚀 from China.
 
 [![Twitter](https://img.shields.io/badge/-saltbo-1ca0f1?style=flat&logo=twitter&logoColor=white)](https://twitter.com/rdsaltbo)
