@@ -13,7 +13,7 @@
 - 🔭 I’m currently working on [luojilab](https://github.com/luojilab) :wink:
 - 🌱 I’m currently learning Rust/Kubernetes/Serverless
 - 💬 Ask me about anything related to Go/Rust/CloudNative
-- 📫 How to reach me: [@saltbo](https://twitter.com/saltbobx)
+- 📫 How to reach me: [@saltbo](https://twitter.com/rdsaltbo)
 - ⚡ Fun fact: I :heart: :cat:s
 
 
