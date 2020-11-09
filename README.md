@@ -7,7 +7,7 @@
 &nbsp;
 
 **Talking about Personal Stuffs:**
-<!-- Any image aligned to the right. Beware the width -->
+<!-- Any image aligned to the right. Beware the width  -->
 <img width="50%" align="right" alt="Github" src="https://raw.githubusercontent.com/saltbo/saltbo/master/images/git-header.svg" />
 
 - 🔭 I’m currently working on [luojilab](https://github.com/luojilab) :wink:
