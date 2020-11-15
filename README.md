@@ -4,7 +4,7 @@
 [![Linkedin](https://img.shields.io/badge/-saltbo-blue?style=flat&logo=Linkedin&logoColor=white)](https://www.linkedin.com/in/saltbo/)
 [![visits](https://visitor.vercel.app/page/saltbo?color=light-green)](https://github.com/saltbo/)
 
-&nbsp;
+&nbsp;  
 
 **Talking about Personal Stuffs:**
 <!-- Any image aligned to the right. Beware the width  -->
