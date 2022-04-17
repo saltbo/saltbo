@@ -23,8 +23,9 @@
 <!--START_SECTION:waka-->
 
 ```text
-Markdown          4 hrs 36 mins   ███████░░░░░░░░░░░░░░░░░░   28.49 %
-Other             2 hrs 35 mins   ████░░░░░░░░░░░░░░░░░░░░░   15.99 %
+Markdown          4 hrs 36 mins   ██████▒░░░░░░░░░░░░░░░░░░   25.97 %
+Vue.js            4 hrs 1 min     █████▓░░░░░░░░░░░░░░░░░░░   22.71 %
+Other             2 hrs 35 mins   ███▓░░░░░░░░░░░░░░░░░░░░░   14.58 %
 ```
 
 <!--END_SECTION:waka-->
