@@ -12,7 +12,7 @@
 <!-- Any image aligned to the right. Beware the width  -->
 <img width="50%" align="right" alt="Github" src="https://raw.githubusercontent.com/saltbo/saltbo/master/images/git-header.svg" />
 
-- 🔭 I’m currently working on [luojilab](https://github.com/luojilab) :wink:
+- 🔭 I’m currently working on [lixiang](https://www.lixiang.com/) :wink:
 - 🌱 I’m currently learning Rust/Kubernetes/Serverless
 - 💬 Ask me about anything related to Go/Rust/CloudNative
 - 📫 How to reach me: [@saltbo](https://twitter.com/rdsaltbo)
