@@ -16,7 +16,7 @@
 - 🔭 I’m currently working on [lixiang](https://www.lixiang.com/) :wink:
 - 🌱 I’m currently learning Rust/Kubernetes/Serverless
 - 💬 Ask me about anything related to Go/Rust/CloudNative
-- 📫 How to reach me: [@saltbo](https://twitter.com/rdsaltbo)
+- 📫 How to reach me: [@saltbo](https://t.me/saltbo)
 - ⚡ Fun fact: I :heart: :cat:s
 
 
