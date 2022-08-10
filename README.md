@@ -24,12 +24,12 @@
 <!--START_SECTION:waka-->
 
 ```text
-Go                12 hrs 59 mins  ██████████▒░░░░░░░░░░░░░░   40.81 %
-Vue.js            7 hrs 32 mins   ██████░░░░░░░░░░░░░░░░░░░   23.70 %
-JavaScript        5 hrs 7 mins    ████░░░░░░░░░░░░░░░░░░░░░   16.10 %
-HTTP Request      1 hr 49 mins    █▒░░░░░░░░░░░░░░░░░░░░░░░   05.75 %
-Go Template       1 hr 22 mins    █░░░░░░░░░░░░░░░░░░░░░░░░   04.34 %
-Bash              57 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.99 %
+Go                17 hrs 31 mins  ███████████▓░░░░░░░░░░░░░   46.90 %
+JavaScript        4 hrs 25 mins   ███░░░░░░░░░░░░░░░░░░░░░░   11.86 %
+Vue.js            4 hrs 7 mins    ██▓░░░░░░░░░░░░░░░░░░░░░░   11.04 %
+HTTP Request      3 hrs 20 mins   ██▒░░░░░░░░░░░░░░░░░░░░░░   08.96 %
+Go Template       1 hr 53 mins    █▒░░░░░░░░░░░░░░░░░░░░░░░   05.06 %
+TypeScript        1 hr 36 mins    █░░░░░░░░░░░░░░░░░░░░░░░░   04.29 %
 ```
 
 <!--END_SECTION:waka-->
