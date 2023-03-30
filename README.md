@@ -14,7 +14,6 @@
 <img width="50%" align="right" alt="Github" src="https://raw.githubusercontent.com/saltbo/saltbo/master/images/git-header.svg" />
 
 - 🤘 GPG KeyID: [A6D9859C3FE0DCBE](https://saltbo.cn/pgp_keys.asc)
-- 🔭 I’m currently working on [lixiang](https://www.lixiang.com/) :wink:
 - 🌱 I’m currently learning Rust/Kubernetes/Serverless
 - 💬 Ask me about anything related to Go/Rust/CloudNative
 - 📫 How to reach me: [@saltbo](https://t.me/saltbo)
