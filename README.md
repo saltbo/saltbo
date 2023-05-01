@@ -24,12 +24,7 @@
 <!--START_SECTION:waka-->
 
 ```text
-YAML             5 hrs 39 mins   ███████▓░░░░░░░░░░░░░░░░░   31.20 %
-Go               3 hrs 34 mins   █████░░░░░░░░░░░░░░░░░░░░   19.69 %
-Bash             3 hrs 15 mins   ████▒░░░░░░░░░░░░░░░░░░░░   17.95 %
-Makefile         2 hrs 14 mins   ███░░░░░░░░░░░░░░░░░░░░░░   12.38 %
-Docker           1 hr 18 mins    █▓░░░░░░░░░░░░░░░░░░░░░░░   07.25 %
-XML              50 mins         █░░░░░░░░░░░░░░░░░░░░░░░░   04.66 %
+No activity tracked
 ```
 
 <!--END_SECTION:waka-->
