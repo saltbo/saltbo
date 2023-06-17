@@ -2,7 +2,6 @@
 
 [![Twitter](https://img.shields.io/badge/-saltbo-1ca0f1?style=flat&logo=twitter&logoColor=white)](https://twitter.com/rdsaltbo)
 [![Linkedin](https://img.shields.io/badge/-saltbo-blue?style=flat&logo=Linkedin&logoColor=white)](https://www.linkedin.com/in/saltbo/)
-[![visits](https://visitor.vercel.app/page/saltbo?color=light-green)](https://github.com/saltbo/)
 [![wakatime](https://wakatime.com/badge/user/f82b1c77-faab-48cd-aef5-a12c0aff104b.svg)](https://wakatime.com/@f82b1c77-faab-48cd-aef5-a12c0aff104b)
 
 &nbsp;  
