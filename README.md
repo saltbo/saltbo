@@ -23,7 +23,11 @@
 <!--START_SECTION:waka-->
 
 ```txt
-No activity tracked
+Go               4 hrs 46 mins   ██████████████████████▒░░   89.64 %
+YAML             17 mins         █▒░░░░░░░░░░░░░░░░░░░░░░░   05.61 %
+Ezhil            10 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   03.17 %
+Makefile         4 mins          ▒░░░░░░░░░░░░░░░░░░░░░░░░   01.28 %
+GitIgnore file   0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.08 %
 ```
 
 <!--END_SECTION:waka-->
