@@ -23,11 +23,7 @@
 <!--START_SECTION:waka-->
 
 ```txt
-TypeScript   0 secs          █████████▒░░░░░░░░░░░░░░░   37.57 %
-CSS          0 secs          █████░░░░░░░░░░░░░░░░░░░░   19.55 %
-Markdown     0 secs          ████▒░░░░░░░░░░░░░░░░░░░░   16.73 %
-Git Config   0 secs          ██░░░░░░░░░░░░░░░░░░░░░░░   08.55 %
-TSConfig     0 secs          █▓░░░░░░░░░░░░░░░░░░░░░░░   06.78 %
+No activity tracked
 ```
 
 <!--END_SECTION:waka-->
