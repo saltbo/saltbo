@@ -23,11 +23,11 @@
 <!--START_SECTION:waka-->
 
 ```txt
-Go                   8 hrs 6 mins    █████████▓░░░░░░░░░░░░░░░   38.40 %
-TypeScript           5 hrs 11 mins   ██████░░░░░░░░░░░░░░░░░░░   24.59 %
-YAML                 2 hrs 34 mins   ███░░░░░░░░░░░░░░░░░░░░░░   12.20 %
-Markdown             2 hrs 23 mins   ██▓░░░░░░░░░░░░░░░░░░░░░░   11.29 %
-JavaScript           1 hr 27 mins    █▓░░░░░░░░░░░░░░░░░░░░░░░   06.94 %
+Go                   6 hrs 40 mins   ████████▓░░░░░░░░░░░░░░░░   34.28 %
+YAML                 4 hrs 8 mins    █████▒░░░░░░░░░░░░░░░░░░░   21.30 %
+TypeScript           3 hrs           ████░░░░░░░░░░░░░░░░░░░░░   15.45 %
+Markdown             2 hrs 34 mins   ███▒░░░░░░░░░░░░░░░░░░░░░   13.18 %
+Helm TEXT template   38 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   03.26 %
 ```
 
 <!--END_SECTION:waka-->
