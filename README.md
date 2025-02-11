@@ -23,7 +23,11 @@
 <!--START_SECTION:waka-->
 
 ```txt
-No activity tracked
+Go                   3 hrs 39 mins   ███████████████████████▒░   93.94 %
+YAML                 12 mins         █▒░░░░░░░░░░░░░░░░░░░░░░░   05.32 %
+go.mod               1 min           ▒░░░░░░░░░░░░░░░░░░░░░░░░   00.73 %
+textmate             0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.01 %
+Helm TEXT template   0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.00 %
 ```
 
 <!--END_SECTION:waka-->
