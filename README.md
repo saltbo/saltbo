@@ -23,11 +23,11 @@
 <!--START_SECTION:waka-->
 
 ```txt
-Go                   24 hrs 30 mins  ██████████████████▒░░░░░░   73.78 %
-YAML                 2 hrs 26 mins   ██░░░░░░░░░░░░░░░░░░░░░░░   07.34 %
-protobuf             1 hr 51 mins    █▒░░░░░░░░░░░░░░░░░░░░░░░   05.57 %
-Protocol Buffer      1 hr 31 mins    █░░░░░░░░░░░░░░░░░░░░░░░░   04.61 %
-TypeScript           1 hr 10 mins    █░░░░░░░░░░░░░░░░░░░░░░░░   03.52 %
+Go                   20 hrs 11 mins  █████████████████░░░░░░░░   67.92 %
+protobuf             1 hr 51 mins    █▓░░░░░░░░░░░░░░░░░░░░░░░   06.24 %
+Bash                 1 hr 50 mins    █▓░░░░░░░░░░░░░░░░░░░░░░░   06.18 %
+Protocol Buffer      1 hr 31 mins    █▒░░░░░░░░░░░░░░░░░░░░░░░   05.16 %
+TypeScript           1 hr 14 mins    █░░░░░░░░░░░░░░░░░░░░░░░░   04.15 %
 ```
 
 <!--END_SECTION:waka-->
