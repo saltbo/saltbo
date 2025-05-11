@@ -23,11 +23,11 @@
 <!--START_SECTION:waka-->
 
 ```txt
-Python                 12 hrs 58 mins  ██████████░░░░░░░░░░░░░░░   40.36 %
-Go                     12 hrs 14 mins  █████████▓░░░░░░░░░░░░░░░   38.08 %
-Terraform              2 hrs 9 mins    █▓░░░░░░░░░░░░░░░░░░░░░░░   06.71 %
-Protocol Buffer        53 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.79 %
-Markdown               44 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.31 %
+Go                     12 hrs 14 mins  ██████████▒░░░░░░░░░░░░░░   41.15 %
+Python                 10 hrs 35 mins  █████████░░░░░░░░░░░░░░░░   35.57 %
+Terraform              2 hrs 9 mins    █▓░░░░░░░░░░░░░░░░░░░░░░░   07.25 %
+Protocol Buffer        53 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   03.01 %
+Markdown               44 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.49 %
 ```
 
 <!--END_SECTION:waka-->
