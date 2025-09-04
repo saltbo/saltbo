@@ -24,11 +24,7 @@
 <!--START_SECTION:waka-->
 
 ```txt
-Go             1 hr 17 mins    █████████████░░░░░░░░░░░░   51.52 %
-Bash           28 mins         ████▓░░░░░░░░░░░░░░░░░░░░   18.62 %
-Makefile       18 mins         ███░░░░░░░░░░░░░░░░░░░░░░   12.50 %
-Docker         14 mins         ██▒░░░░░░░░░░░░░░░░░░░░░░   09.61 %
-YAML           7 mins          █▒░░░░░░░░░░░░░░░░░░░░░░░   05.06 %
+No activity tracked
 ```
 
 <!--END_SECTION:waka-->
