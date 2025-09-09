@@ -24,7 +24,11 @@
 <!--START_SECTION:waka-->
 
 ```txt
-No activity tracked
+Go             40 mins         ███████████████████░░░░░░   76.51 %
+go.mod         12 mins         █████▓░░░░░░░░░░░░░░░░░░░   22.74 %
+Text           0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.43 %
+YAML           0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.15 %
+Makefile       0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.15 %
 ```
 
 <!--END_SECTION:waka-->
