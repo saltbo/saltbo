@@ -24,11 +24,11 @@
 <!--START_SECTION:waka-->
 
 ```txt
-Go                22 hrs 56 mins  ███████████░░░░░░░░░░░░░░   44.64 %
-TypeScript        11 hrs 19 mins  █████▓░░░░░░░░░░░░░░░░░░░   22.05 %
-Protocol Buffer   4 hrs 39 mins   ██▒░░░░░░░░░░░░░░░░░░░░░░   09.07 %
-YAML              3 hrs 26 mins   █▓░░░░░░░░░░░░░░░░░░░░░░░   06.69 %
-Swift             2 hrs 28 mins   █▒░░░░░░░░░░░░░░░░░░░░░░░   04.81 %
+Go                21 hrs 29 mins  ██████████▓░░░░░░░░░░░░░░   42.57 %
+TypeScript        11 hrs 19 mins  █████▓░░░░░░░░░░░░░░░░░░░   22.45 %
+Swift             3 hrs 57 mins   ██░░░░░░░░░░░░░░░░░░░░░░░   07.83 %
+YAML              3 hrs 44 mins   ██░░░░░░░░░░░░░░░░░░░░░░░   07.40 %
+Protocol Buffer   3 hrs 35 mins   █▓░░░░░░░░░░░░░░░░░░░░░░░   07.11 %
 ```
 
 <!--END_SECTION:waka-->
