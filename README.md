@@ -24,11 +24,11 @@
 <!--START_SECTION:waka-->
 
 ```txt
-Dart                       8 hrs 47 mins   ██████░░░░░░░░░░░░░░░░░░░   23.49 %
-Go                         6 hrs 27 mins   ████▒░░░░░░░░░░░░░░░░░░░░   17.27 %
-TypeScript                 6 hrs 18 mins   ████▒░░░░░░░░░░░░░░░░░░░░   16.85 %
-Protocol Buffer            5 hrs 13 mins   ███▒░░░░░░░░░░░░░░░░░░░░░   13.96 %
-YAML                       2 hrs 25 mins   █▓░░░░░░░░░░░░░░░░░░░░░░░   06.48 %
+Go                         7 hrs 53 mins   █████▓░░░░░░░░░░░░░░░░░░░   22.40 %
+Dart                       7 hrs 17 mins   █████▒░░░░░░░░░░░░░░░░░░░   20.70 %
+TypeScript                 6 hrs 13 mins   ████▒░░░░░░░░░░░░░░░░░░░░   17.66 %
+Protocol Buffer            3 hrs 42 mins   ██▓░░░░░░░░░░░░░░░░░░░░░░   10.53 %
+YAML                       1 hr 59 mins    █▒░░░░░░░░░░░░░░░░░░░░░░░   05.63 %
 ```
 
 <!--END_SECTION:waka-->
