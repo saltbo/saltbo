@@ -1,0 +1,177 @@
+name: Cost Killswitch
+
+# Account-wide Cloudflare cost monitor. Polls every 10 minutes, aggregates
+# usage across all workers / DOs / D1 databases under CF_ACCOUNT_ID. On a
+# tripped threshold, opens a GitHub issue with per-resource breakdown and
+# (optionally) disables the single top offender worker.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   CF_API_TOKEN           Account Analytics: Read (always).
+#                          Plus Zone: Edit + Workers Scripts: Edit only when
+#                          AUTO_DISABLE is enabled.
+#
+# Required repo variables:
+#   CF_ACCOUNT_ID          Your Cloudflare account tag.
+#
+# Optional repo variables (thresholds — leave unset to use defaults):
+#   DAILY_WORKER_REQUESTS  default 5_000_000
+#   DAILY_D1_ROWS_READ     default 50_000_000
+#   DAILY_DO_REQUESTS      default 2_000_000
+#   DAILY_DO_DURATION_SEC  default 500_000
+#
+# Optional repo variables (auto-disable of the top offender):
+#   AUTO_DISABLE           "true" to actually delete routes on trip; default off.
+#   CF_ZONE_ID             zone ID hosting the offender's custom domain / routes.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: cost-killswitch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    env:
+      CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      DAILY_WORKER_REQUESTS: ${{ vars.DAILY_WORKER_REQUESTS }}
+      DAILY_D1_ROWS_READ: ${{ vars.DAILY_D1_ROWS_READ }}
+      DAILY_DO_REQUESTS: ${{ vars.DAILY_DO_REQUESTS }}
+      DAILY_DO_DURATION_SEC: ${{ vars.DAILY_DO_DURATION_SEC }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check usage
+        id: check
+        run: |
+          set +e
+          OUTPUT=$(node scripts/cost-killswitch.mjs 2> >(tee -a $GITHUB_STEP_SUMMARY >&2))
+          CODE=$?
+          echo "$OUTPUT" > /tmp/killswitch.json
+          {
+            echo "exit_code=$CODE"
+            echo "result<<EOF"
+            cat /tmp/killswitch.json
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Open alert issue
+        if: steps.check.outputs.exit_code == '1'
+        uses: actions/github-script@v7
+        env:
+          KILL_RESULT: ${{ steps.check.outputs.result }}
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        with:
+          script: |
+            const r = JSON.parse(process.env.KILL_RESULT);
+            const topN = (obj, n = 5) =>
+              Object.entries(obj).slice(0, n)
+                .map(([k, v]) => `| \`${k}\` | ${v} |`)
+                .join("\n") || `| (none) | 0 |`;
+            const offenderLine = (key, label) => {
+              const o = r.offenders?.[key];
+              return o
+                ? `- **${label}**: \`${o.name}\` contributed ${o.value}`
+                : `- **${label}**: no single offender exceeds threshold alone (aggregate breach)`;
+            };
+            const body = [
+              `Account-level killswitch tripped at \`${new Date().toISOString()}\`.`,
+              ``,
+              `**Reasons:**`,
+              ...r.reasons.map(x => `- ${x}`),
+              ``,
+              `**Top offenders:**`,
+              ...r.reasons.map(rs => {
+                const key = rs.split(" ")[0];
+                return offenderLine(key, key);
+              }),
+              ``,
+              `**Usage window:** \`${r.windowStart}\` → \`${r.windowEnd}\``,
+              ``,
+              `| Metric | Used | Threshold |`,
+              `|---|---:|---:|`,
+              `| Worker requests | ${r.usage.workerRequests} | ${r.thresholds.workerRequests} |`,
+              `| D1 rows read | ${r.usage.d1RowsRead} | ${r.thresholds.d1RowsRead} |`,
+              `| DO requests | ${r.usage.doRequests} | ${r.thresholds.doRequests} |`,
+              `| DO duration (s) | ${r.usage.doDurationSec} | ${r.thresholds.doDurationSec} |`,
+              ``,
+              `**Top 5 workers by requests:**`,
+              `| Script | Requests |`,
+              `|---|---:|`,
+              topN(r.breakdown.workerRequestsByScript),
+              ``,
+              `**Top 5 D1 databases by rowsRead:**`,
+              `| Database ID | Rows read |`,
+              `|---|---:|`,
+              topN(r.breakdown.d1RowsReadByDB),
+              ``,
+              `Dashboard: https://dash.cloudflare.com/${process.env.CF_ACCOUNT_ID || ''}/workers/overview`,
+            ].join("\n");
+            const title = `[killswitch] Cost threshold tripped: ${r.reasons.join('; ')}`;
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'killswitch',
+            });
+            if (open.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: open[0].number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['killswitch'],
+              });
+            }
+
+      - name: Auto-disable top offender worker
+        if: steps.check.outputs.exit_code == '1' && vars.AUTO_DISABLE == 'true' && vars.CF_ZONE_ID != ''
+        env:
+          KILL_RESULT: ${{ steps.check.outputs.result }}
+          CF_ZONE_ID: ${{ vars.CF_ZONE_ID }}
+        run: |
+          set -euo pipefail
+          # Pick the first identified offender from any Worker-attributed metric
+          OFFENDER=$(echo "$KILL_RESULT" | jq -r '
+            .offenders.workerRequests.name //
+            .offenders.doRequests.name //
+            .offenders.doDurationSec.name //
+            empty')
+          if [ -z "$OFFENDER" ]; then
+            echo "No single Worker-attributed offender — refusing to auto-disable."
+            echo "Investigate manually via the issue that was just opened."
+            exit 0
+          fi
+          echo "Auto-disabling routes for worker: $OFFENDER"
+          ROUTES=$(curl -sS -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/workers/routes")
+          echo "$ROUTES" | jq -r --arg name "$OFFENDER" \
+            '.result[] | select(.script == $name) | .id' | while read -r id; do
+            if [ -n "$id" ]; then
+              echo "DELETE route $id"
+              curl -sS -X DELETE -H "Authorization: Bearer $CF_API_TOKEN" \
+                "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/workers/routes/$id"
+            fi
+          done
+
+      - name: Fail the job on trip
+        if: steps.check.outputs.exit_code == '1'
+        run: exit 1
