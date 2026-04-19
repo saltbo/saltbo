@@ -1,27 +1,20 @@
 #!/usr/bin/env node
 /**
- * Account-level Cloudflare cost killswitch.
+ * Account-level Cloudflare cost killswitch — USD model.
  *
- * Queries usage grouped by scriptName / databaseId so a tripped threshold
- * can be attributed to a specific offender. Emits a JSON result with
- * totals, per-resource breakdown, and top offenders.
- *
- * Note on DO duration: the `durableObjectsPeriodicGroups` dataset exposes
- * only `namespaceId` as a dimension (not `scriptName`), so we build a
- * namespaceId → scriptName map from the Invocations dataset and translate.
+ * Queries every billable analytics dataset, multiplies usage by the current
+ * CF unit price to produce an estimated daily $ spend. Trips on a single
+ * `DAILY_USD_ALERT` threshold and identifies the top-cost resource.
  *
  * Env:
- *   CF_ACCOUNT_ID             — required
- *   CF_API_TOKEN              — required, needs Account Analytics: Read
- *   DAILY_WORKER_REQUESTS     — optional, default  5_000_000
- *   DAILY_D1_ROWS_READ        — optional, default 50_000_000
- *   DAILY_DO_REQUESTS         — optional, default  2_000_000
- *   DAILY_DO_DURATION_SEC     — optional, default    500_000   (active seconds)
+ *   CF_ACCOUNT_ID           — required
+ *   CF_API_TOKEN            — required (Account Analytics: Read)
+ *   DAILY_USD_ALERT         — optional, default 100 ($)
  *
  * Exit codes:
- *   0  — all thresholds ok
- *   1  — one or more thresholds tripped
- *   2  — query failed (do NOT auto-disable on this)
+ *   0  — estimated daily spend within threshold
+ *   1  — threshold exceeded
+ *   2  — query failed (do NOT auto-disable)
  */
 
 const ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
@@ -32,12 +25,33 @@ if (!ACCOUNT_ID || !API_TOKEN) {
   process.exit(2);
 }
 
-const thresholds = {
-  workerRequests: Number(process.env.DAILY_WORKER_REQUESTS || 5_000_000),
-  d1RowsRead: Number(process.env.DAILY_D1_ROWS_READ || 50_000_000),
-  doRequests: Number(process.env.DAILY_DO_REQUESTS || 2_000_000),
-  doDurationSec: Number(process.env.DAILY_DO_DURATION_SEC || 500_000),
+const thresholdUsd = Number(process.env.DAILY_USD_ALERT || 100);
+
+// CF unit prices (per-million, except duration which is per-million-GB-seconds).
+// Verified against https://developers.cloudflare.com/*/platform/pricing/ 2026-04.
+const P_PER_MILLION = {
+  workerRequests: 0.30,
+  doRequests: 0.15,
+  doDurationGbSec: 12.50,
+  d1RowsRead: 0.001,
+  d1RowsWritten: 1.00,
+  kvReads: 0.50,
+  kvWrites: 5.00, // writes + lists + deletes share this tier per CF docs
+  r2ClassA: 4.50,
+  r2ClassB: 0.36,
 };
+const DO_MEMORY_GB = 0.125; // every DO instance is allocated 128 MiB
+
+// R2 action classification per CF pricing docs.
+const R2_CLASS_A = new Set([
+  "PutObject", "CopyObject", "DeleteObject", "DeleteObjects",
+  "CreateMultipartUpload", "CompleteMultipartUpload", "UploadPart",
+  "UploadPartCopy", "AbortMultipartUpload",
+  "ListBuckets", "ListObjectsV2", "ListMultipartUploads", "ListParts",
+  "PutBucket", "DeleteBucket",
+]);
+const R2_CLASS_B = new Set(["GetObject", "HeadObject", "HeadBucket"]);
+// KV "read" is cheap tier; everything else (write/list/delete) is the $5/M tier.
 
 const now = new Date();
 const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -74,7 +88,21 @@ const query = `
           limit: 10000
         ) {
           dimensions { databaseId }
-          sum { readQueries writeQueries rowsRead rowsWritten }
+          sum { rowsRead rowsWritten }
+        }
+        kvOperationsAdaptiveGroups(
+          filter: { datetime_geq: $start, datetime_lt: $end }
+          limit: 10000
+        ) {
+          dimensions { actionType namespaceId }
+          sum { requests }
+        }
+        r2OperationsAdaptiveGroups(
+          filter: { datetime_geq: $start, datetime_lt: $end }
+          limit: 10000
+        ) {
+          dimensions { actionType bucketName }
+          sum { requests }
         }
       }
     }
@@ -93,120 +121,132 @@ async function callGraphQL() {
       variables: { accountTag: ACCOUNT_ID, start: startIso, end: nowIso },
     }),
   });
-  if (!res.ok) {
-    throw new Error(`GraphQL HTTP ${res.status}: ${await res.text()}`);
-  }
+  if (!res.ok) throw new Error(`GraphQL HTTP ${res.status}: ${await res.text()}`);
   const data = await res.json();
-  if (data.errors?.length) {
-    throw new Error(`GraphQL errors: ${JSON.stringify(data.errors)}`);
-  }
+  if (data.errors?.length) throw new Error(`GraphQL errors: ${JSON.stringify(data.errors)}`);
   return data.data.viewer.accounts[0] ?? {};
 }
 
-// Group rows by a dimension path, returning { [dimValue]: summedMetric } sorted desc.
-function groupByDim(rows, dimPath, valueKey) {
-  if (!Array.isArray(rows)) return {};
-  const out = {};
-  for (const r of rows) {
-    let k = r?.dimensions;
-    for (const p of dimPath) k = k?.[p];
-    if (k == null) k = "(unknown)";
-    out[k] = (out[k] ?? 0) + (r?.sum?.[valueKey] ?? 0);
-  }
-  return Object.fromEntries(Object.entries(out).sort((a, b) => b[1] - a[1]));
+function addCost(map, key, amount) {
+  if (amount <= 0) return;
+  map[key] = (map[key] ?? 0) + amount;
 }
 
-function totalOf(grouped) {
-  return Object.values(grouped).reduce((a, b) => a + b, 0);
-}
-
-// Return the top entry if it alone exceeds the threshold, else null.
-function topOffender(breakdown, threshold) {
-  const first = Object.entries(breakdown)[0];
-  if (!first) return null;
-  return first[1] > threshold ? { name: first[0], value: first[1] } : null;
-}
-
-function formatRow(label, used, limit) {
-  const pct = limit > 0 ? ((used / limit) * 100).toFixed(1) : "?";
-  return `  ${label.padEnd(16)} ${String(used).padStart(12)} / ${String(limit).padStart(12)}  (${pct}%)`;
+function sortDesc(obj) {
+  return Object.fromEntries(Object.entries(obj).sort((a, b) => b[1] - a[1]));
 }
 
 function main() {
   return callGraphQL().then((acct) => {
-    // Build namespaceId -> scriptName map from the Invocations dataset,
-    // then translate Periodic data (which lacks scriptName).
+    // Per-owner cost accumulation, labeled by kind so the issue can
+    // disambiguate "agent-kanban (worker)" from a same-named DB.
+    const costByOwner = {};
+    const costByCategory = {};
+
+    // ---- Workers: requests ----
+    for (const r of acct.workersInvocationsAdaptive ?? []) {
+      const name = r.dimensions?.scriptName ?? "(unknown)";
+      const reqs = r.sum?.requests ?? 0;
+      const cost = (reqs / 1e6) * P_PER_MILLION.workerRequests;
+      addCost(costByOwner, `worker:${name}`, cost);
+      addCost(costByCategory, "Workers requests", cost);
+    }
+
+    // ---- DO: requests + duration ----
     const nsToScript = {};
     for (const r of acct.durableObjectsInvocationsAdaptiveGroups ?? []) {
-      const ns = r?.dimensions?.namespaceId;
-      const sn = r?.dimensions?.scriptName;
+      const ns = r.dimensions?.namespaceId;
+      const sn = r.dimensions?.scriptName;
       if (ns && sn) nsToScript[ns] = sn;
+      const name = sn ?? "(unknown)";
+      const reqs = r.sum?.requests ?? 0;
+      const cost = (reqs / 1e6) * P_PER_MILLION.doRequests;
+      addCost(costByOwner, `do:${name}`, cost);
+      addCost(costByCategory, "DO requests", cost);
     }
-    const periodicByScript = {};
     for (const r of acct.durableObjectsPeriodicGroups ?? []) {
-      const ns = r?.dimensions?.namespaceId;
+      const ns = r.dimensions?.namespaceId;
       const sn = nsToScript[ns] ?? `namespace:${ns}`;
-      periodicByScript[sn] = (periodicByScript[sn] ?? 0) + (r?.sum?.activeTime ?? 0);
+      const activeSec = (r.sum?.activeTime ?? 0) / 1e6; // μs → s
+      const gbSec = activeSec * DO_MEMORY_GB;
+      const cost = (gbSec / 1e6) * P_PER_MILLION.doDurationGbSec;
+      addCost(costByOwner, `do:${sn}`, cost);
+      addCost(costByCategory, "DO duration", cost);
     }
-    const doDurationUsecByScript = Object.fromEntries(
-      Object.entries(periodicByScript).sort((a, b) => b[1] - a[1])
-    );
 
-    const breakdown = {
-      workerRequestsByScript: groupByDim(acct.workersInvocationsAdaptive, ["scriptName"], "requests"),
-      doRequestsByScript: groupByDim(acct.durableObjectsInvocationsAdaptiveGroups, ["scriptName"], "requests"),
-      doDurationUsecByScript,
-      d1RowsReadByDB: groupByDim(acct.d1AnalyticsAdaptiveGroups, ["databaseId"], "rowsRead"),
+    // ---- D1: rows read/written by database ----
+    for (const r of acct.d1AnalyticsAdaptiveGroups ?? []) {
+      const db = r.dimensions?.databaseId ?? "(unknown)";
+      const rr = r.sum?.rowsRead ?? 0;
+      const rw = r.sum?.rowsWritten ?? 0;
+      const readCost = (rr / 1e6) * P_PER_MILLION.d1RowsRead;
+      const writeCost = (rw / 1e6) * P_PER_MILLION.d1RowsWritten;
+      addCost(costByOwner, `d1:${db}`, readCost + writeCost);
+      addCost(costByCategory, "D1 rows read", readCost);
+      addCost(costByCategory, "D1 rows written", writeCost);
+    }
+
+    // ---- KV: reads vs writes (by namespaceId) ----
+    for (const r of acct.kvOperationsAdaptiveGroups ?? []) {
+      const ns = r.dimensions?.namespaceId ?? "(unknown)";
+      const actionType = r.dimensions?.actionType ?? "unknown";
+      const reqs = r.sum?.requests ?? 0;
+      const isRead = actionType === "read";
+      const rate = isRead ? P_PER_MILLION.kvReads : P_PER_MILLION.kvWrites;
+      const cost = (reqs / 1e6) * rate;
+      addCost(costByOwner, `kv:${ns}`, cost);
+      addCost(costByCategory, isRead ? "KV reads" : "KV writes/deletes/lists", cost);
+    }
+
+    // ---- R2: Class A vs B (by bucket) ----
+    for (const r of acct.r2OperationsAdaptiveGroups ?? []) {
+      const bucket = r.dimensions?.bucketName || "(no-bucket)";
+      const action = r.dimensions?.actionType ?? "";
+      const reqs = r.sum?.requests ?? 0;
+      let rate = 0;
+      let cat = "R2 other";
+      if (R2_CLASS_A.has(action)) { rate = P_PER_MILLION.r2ClassA; cat = "R2 Class A"; }
+      else if (R2_CLASS_B.has(action)) { rate = P_PER_MILLION.r2ClassB; cat = "R2 Class B"; }
+      const cost = (reqs / 1e6) * rate;
+      addCost(costByOwner, `r2:${bucket}`, cost);
+      addCost(costByCategory, cat, cost);
+    }
+
+    // ---- Totals & sort ----
+    const totalCost = Object.values(costByOwner).reduce((a, b) => a + b, 0);
+    const byOwnerSorted = sortDesc(costByOwner);
+    const byCategorySorted = sortDesc(costByCategory);
+
+    const tripped = totalCost > thresholdUsd;
+    const topOwnerEntry = Object.entries(byOwnerSorted)[0];
+    const topOwner = topOwnerEntry ? { name: topOwnerEntry[0], costUSD: topOwnerEntry[1] } : null;
+
+    const result = {
+      tripped,
+      estimatedDailyCostUSD: Number(totalCost.toFixed(4)),
+      thresholdUSD: thresholdUsd,
+      windowStart: startIso,
+      windowEnd: nowIso,
+      topOwner,
+      costByCategory: Object.fromEntries(Object.entries(byCategorySorted).map(([k, v]) => [k, Number(v.toFixed(4))])),
+      costByOwner: Object.fromEntries(Object.entries(byOwnerSorted).slice(0, 20).map(([k, v]) => [k, Number(v.toFixed(4))])),
+      reasons: tripped ? [`estimatedDailyCostUSD ${totalCost.toFixed(2)} > ${thresholdUsd}`] : [],
     };
-
-    const usage = {
-      workerRequests: totalOf(breakdown.workerRequestsByScript),
-      doRequests: totalOf(breakdown.doRequestsByScript),
-      doDurationSec: Math.round(totalOf(doDurationUsecByScript) / 1_000_000),
-      d1RowsRead: totalOf(breakdown.d1RowsReadByDB),
-      d1RowsWritten: groupByDim(acct.d1AnalyticsAdaptiveGroups, ["databaseId"], "rowsWritten"),
-    };
-    usage.d1RowsWritten = totalOf(usage.d1RowsWritten);
-
-    const reasons = [];
-    const offenders = {};
-    if (usage.workerRequests > thresholds.workerRequests) {
-      reasons.push(`workerRequests ${usage.workerRequests} > ${thresholds.workerRequests}`);
-      offenders.workerRequests = topOffender(breakdown.workerRequestsByScript, thresholds.workerRequests);
-    }
-    if (usage.d1RowsRead > thresholds.d1RowsRead) {
-      reasons.push(`d1RowsRead ${usage.d1RowsRead} > ${thresholds.d1RowsRead}`);
-      offenders.d1RowsRead = topOffender(breakdown.d1RowsReadByDB, thresholds.d1RowsRead);
-    }
-    if (usage.doRequests > thresholds.doRequests) {
-      reasons.push(`doRequests ${usage.doRequests} > ${thresholds.doRequests}`);
-      offenders.doRequests = topOffender(breakdown.doRequestsByScript, thresholds.doRequests);
-    }
-    if (usage.doDurationSec > thresholds.doDurationSec) {
-      reasons.push(`doDurationSec ${usage.doDurationSec} > ${thresholds.doDurationSec}`);
-      const thresholdUsec = thresholds.doDurationSec * 1_000_000;
-      offenders.doDurationSec = topOffender(doDurationUsecByScript, thresholdUsec);
-    }
-
-    const tripped = reasons.length > 0;
-    const result = { tripped, windowStart: startIso, windowEnd: nowIso, usage, thresholds, breakdown, offenders, reasons };
 
     console.log(JSON.stringify(result));
 
+    const fmt = (v) => `$${v.toFixed(4)}`.padStart(12);
     const lines = [
       `[killswitch] window=${startIso}..${nowIso}`,
-      formatRow("workerRequests:", usage.workerRequests, thresholds.workerRequests),
-      formatRow("d1RowsRead:", usage.d1RowsRead, thresholds.d1RowsRead),
-      formatRow("doRequests:", usage.doRequests, thresholds.doRequests),
-      formatRow("doDurationSec:", usage.doDurationSec, thresholds.doDurationSec),
-      "",
-      "  workers by requests:",
-      ...Object.entries(breakdown.workerRequestsByScript).slice(0, 8).map(([k, v]) => `    ${k.padEnd(30)} ${v}`),
-      "",
-      "  databases by rowsRead:",
-      ...Object.entries(breakdown.d1RowsReadByDB).slice(0, 8).map(([k, v]) => `    ${k.padEnd(40)} ${v}`),
-      "",
-      `  tripped: ${tripped}${tripped ? ` (${reasons.join("; ")})` : ""}`,
+      `  total estimated spend: $${totalCost.toFixed(4)} / $${thresholdUsd}  (${((totalCost / thresholdUsd) * 100).toFixed(2)}%)`,
+      ``,
+      `  by category:`,
+      ...Object.entries(byCategorySorted).map(([k, v]) => `    ${k.padEnd(28)} ${fmt(v)}`),
+      ``,
+      `  top 10 by owner:`,
+      ...Object.entries(byOwnerSorted).slice(0, 10).map(([k, v]) => `    ${k.padEnd(55)} ${fmt(v)}`),
+      ``,
+      `  tripped: ${tripped}${tripped ? ` (${result.reasons.join("; ")})` : ""}`,
     ];
     console.error(lines.join("\n"));
 
