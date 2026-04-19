@@ -13,11 +13,8 @@ name: Cost Killswitch
 # Required repo variables:
 #   CF_ACCOUNT_ID          Your Cloudflare account tag.
 #
-# Optional repo variables (thresholds — leave unset to use defaults):
-#   DAILY_WORKER_REQUESTS  default 5_000_000
-#   DAILY_D1_ROWS_READ     default 50_000_000
-#   DAILY_DO_REQUESTS      default 2_000_000
-#   DAILY_DO_DURATION_SEC  default 500_000
+# Optional repo variables:
+#   DAILY_USD_ALERT        default 100 (USD estimated daily spend)
 #
 # Optional repo variables (auto-disable of the top offender):
 #   AUTO_DISABLE           "true" to actually delete routes on trip; default off.
@@ -40,10 +37,7 @@ jobs:
     env:
       CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
       CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-      DAILY_WORKER_REQUESTS: ${{ vars.DAILY_WORKER_REQUESTS }}
-      DAILY_D1_ROWS_READ: ${{ vars.DAILY_D1_ROWS_READ }}
-      DAILY_DO_REQUESTS: ${{ vars.DAILY_DO_REQUESTS }}
-      DAILY_DO_DURATION_SEC: ${{ vars.DAILY_DO_DURATION_SEC }}
+      DAILY_USD_ALERT: ${{ vars.DAILY_USD_ALERT }}
     steps:
       - uses: actions/checkout@v4
 
@@ -75,50 +69,35 @@ jobs:
         with:
           script: |
             const r = JSON.parse(process.env.KILL_RESULT);
-            const topN = (obj, n = 5) =>
-              Object.entries(obj).slice(0, n)
-                .map(([k, v]) => `| \`${k}\` | ${v} |`)
-                .join("\n") || `| (none) | 0 |`;
-            const offenderLine = (key, label) => {
-              const o = r.offenders?.[key];
-              return o
-                ? `- **${label}**: \`${o.name}\` contributed ${o.value}`
-                : `- **${label}**: no single offender exceeds threshold alone (aggregate breach)`;
-            };
+            const usd = (v) => `$${Number(v).toFixed(4)}`;
+            const rows = (obj, n) =>
+              Object.entries(obj || {}).slice(0, n)
+                .map(([k, v]) => `| \`${k}\` | ${usd(v)} |`)
+                .join("\n") || `| (none) | $0.0000 |`;
             const body = [
               `Account-level killswitch tripped at \`${new Date().toISOString()}\`.`,
               ``,
-              `**Reasons:**`,
-              ...r.reasons.map(x => `- ${x}`),
+              `**Estimated daily spend: ${usd(r.estimatedDailyCostUSD)}** (threshold ${usd(r.thresholdUSD)})`,
               ``,
-              `**Top offenders:**`,
-              ...r.reasons.map(rs => {
-                const key = rs.split(" ")[0];
-                return offenderLine(key, key);
-              }),
+              r.topOwner
+                ? `**Top cost owner:** \`${r.topOwner.name}\` at ${usd(r.topOwner.costUSD)} (${((r.topOwner.costUSD / r.estimatedDailyCostUSD) * 100).toFixed(1)}% of total)`
+                : `**Top cost owner:** (none identified)`,
               ``,
               `**Usage window:** \`${r.windowStart}\` → \`${r.windowEnd}\``,
               ``,
-              `| Metric | Used | Threshold |`,
-              `|---|---:|---:|`,
-              `| Worker requests | ${r.usage.workerRequests} | ${r.thresholds.workerRequests} |`,
-              `| D1 rows read | ${r.usage.d1RowsRead} | ${r.thresholds.d1RowsRead} |`,
-              `| DO requests | ${r.usage.doRequests} | ${r.thresholds.doRequests} |`,
-              `| DO duration (s) | ${r.usage.doDurationSec} | ${r.thresholds.doDurationSec} |`,
-              ``,
-              `**Top 5 workers by requests:**`,
-              `| Script | Requests |`,
+              `**Spend by category:**`,
+              `| Category | Cost |`,
               `|---|---:|`,
-              topN(r.breakdown.workerRequestsByScript),
+              rows(r.costByCategory, 20),
               ``,
-              `**Top 5 D1 databases by rowsRead:**`,
-              `| Database ID | Rows read |`,
+              `**Top 10 owners:**`,
+              `| Owner | Cost |`,
               `|---|---:|`,
-              topN(r.breakdown.d1RowsReadByDB),
+              rows(r.costByOwner, 10),
               ``,
               `Dashboard: https://dash.cloudflare.com/${process.env.CF_ACCOUNT_ID || ''}/workers/overview`,
             ].join("\n");
-            const title = `[killswitch] Cost threshold tripped: ${r.reasons.join('; ')}`;
+            const title = `[killswitch] Account spend ${usd(r.estimatedDailyCostUSD)}/day exceeds ${usd(r.thresholdUSD)}`;
             const { data: open } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -149,14 +128,15 @@ jobs:
           CF_ZONE_ID: ${{ vars.CF_ZONE_ID }}
         run: |
           set -euo pipefail
-          # Pick the first identified offender from any Worker-attributed metric
+          # topOwner is labeled like "worker:<name>" or "do:<name>" when the cost
+          # is attributable to a Worker script. Other prefixes (d1:/kv:/r2:) have
+          # no route to delete — those need human investigation.
           OFFENDER=$(echo "$KILL_RESULT" | jq -r '
-            .offenders.workerRequests.name //
-            .offenders.doRequests.name //
-            .offenders.doDurationSec.name //
-            empty')
+            .topOwner.name // empty
+            | select(startswith("worker:") or startswith("do:"))
+            | sub("^(worker|do):"; "")')
           if [ -z "$OFFENDER" ]; then
-            echo "No single Worker-attributed offender — refusing to auto-disable."
+            echo "Top cost owner is not a Worker (likely D1/KV/R2) — refusing to auto-disable."
             echo "Investigate manually via the issue that was just opened."
             exit 0
           fi
