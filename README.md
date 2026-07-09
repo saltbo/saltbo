@@ -26,11 +26,11 @@
 <!--START_SECTION:waka-->
 
 ```txt
-TypeScript   44 hrs 35 mins        ███████████████▓░░░░░░░░░   62.63 %
-Go           9 hrs 42 mins         ███▒░░░░░░░░░░░░░░░░░░░░░   13.63 %
-Markdown     6 hrs 52 mins         ██▒░░░░░░░░░░░░░░░░░░░░░░   09.65 %
-JavaScript   2 hrs 21 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   03.31 %
-Gherkin      1 hr 55 mins          ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.70 %
+TypeScript   33 hrs 4 mins         ████████████░░░░░░░░░░░░░   48.64 %
+Dart         9 hrs 13 mins         ███▒░░░░░░░░░░░░░░░░░░░░░   13.58 %
+Go           8 hrs 1 min           ███░░░░░░░░░░░░░░░░░░░░░░   11.80 %
+Markdown     7 hrs 27 mins         ██▓░░░░░░░░░░░░░░░░░░░░░░   10.97 %
+Gherkin      2 hrs 7 mins          ▓░░░░░░░░░░░░░░░░░░░░░░░░   03.13 %
 ```
 
 <!--END_SECTION:waka-->
