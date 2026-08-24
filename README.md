@@ -26,11 +26,7 @@
 <!--START_SECTION:waka-->
 
 ```txt
-TypeScript   18 mins               ██████████▓░░░░░░░░░░░░░░   42.49 %
-Dart         12 mins               ███████░░░░░░░░░░░░░░░░░░   28.46 %
-JSON         8 mins                █████▒░░░░░░░░░░░░░░░░░░░   20.89 %
-Markdown     1 min                 █░░░░░░░░░░░░░░░░░░░░░░░░   04.46 %
-JavaScript   1 min                 ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.46 %
+No activity tracked
 ```
 
 <!--END_SECTION:waka-->
