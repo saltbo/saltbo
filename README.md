@@ -26,7 +26,11 @@
 <!--START_SECTION:waka-->
 
 ```txt
-No activity tracked
+TypeScript    49 hrs 8 mins         ██████████░░░░░░░░░░░░░░░   40.32 %
+Python        25 hrs 37 mins        █████▒░░░░░░░░░░░░░░░░░░░   21.02 %
+Markdown      21 hrs 55 mins        ████▒░░░░░░░░░░░░░░░░░░░░   17.99 %
+Gherkin       7 hrs 51 mins         █▓░░░░░░░░░░░░░░░░░░░░░░░   06.45 %
+Other         7 hrs 34 mins         █▓░░░░░░░░░░░░░░░░░░░░░░░   06.22 %
 ```
 
 <!--END_SECTION:waka-->
